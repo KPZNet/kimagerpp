@@ -13,7 +13,7 @@ import os
 import numpy as np
 
 
-epochs = 25
+epochs = 10
 labels = ['daisy', 'rose']
 img_size = 224
 
@@ -159,7 +159,7 @@ plt.plot(epochs_range, loss, label='Training Loss')
 plt.plot(epochs_range, val_loss, label='Validation Loss')
 plt.legend(loc='upper right')
 plt.title('Training and Validation Loss')
-plt.show()
+#plt.show()
 
 
 #predictions = model.predict_classes(x_val)
@@ -168,10 +168,6 @@ classes_x=np.argmax(predict_x,axis=1)
 
 predictions = classes_x.reshape(1,-1)[0]
 print(classification_report(y_val, predictions, target_names = ['Daisy (Class 0)','Rose (Class 1)']))
-
-
-
-
 
 
 
