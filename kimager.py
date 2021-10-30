@@ -51,13 +51,13 @@ for i in train:
         l.append("rose")
 sns.set_style('darkgrid')
 sns.countplot(l)
-plt.show()
+#plt.show()
 
 
 plt.figure(figsize = (5,5))
 plt.imshow(val[1][0])
 plt.title(labels[train[0][1]])
-plt.show()
+#plt.show()
 
 
 l = []
@@ -68,14 +68,14 @@ for i in val:
         l.append("rose")
 sns.set_style('darkgrid')
 sns.countplot(l)
-plt.show()
+#plt.show()
 
 
 
 plt.figure(figsize = (5,5))
 plt.imshow(val[-1][0])
 plt.title(labels[train[-1][1]])
-plt.show()
+#plt.show()
 
 
 x_train = []
@@ -134,10 +134,9 @@ model.add(Dense(2, activation="softmax"))
 
 model.summary()
 
-#opt = Adam(lr=0.000001)
 learning_rate = 0.000001
 opti = adam_v2.Adam(learning_rate=learning_rate, decay=learning_rate/epochs)
-model.compile(optimizer = opti , loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True) , metrics = ['accuracy'])
+model.compile(optimizer = opti , loss = keras.losses.SparseCategoricalCrossentropy(from_logits=True) , metrics = ['accuracy'])
 
 history = model.fit(x_train,y_train,epochs = epochs , validation_data = (x_val, y_val))
 
@@ -162,66 +161,14 @@ plt.legend(loc='upper right')
 plt.title('Training and Validation Loss')
 plt.show()
 
-predictions = model.predict_classes(x_val)
-predictions = predictions.reshape(1,-1)[0]
+
+#predictions = model.predict_classes(x_val)
+predict_x=model.predict(x_val) 
+classes_x=np.argmax(predict_x,axis=1)
+
+predictions = classes_x.reshape(1,-1)[0]
 print(classification_report(y_val, predictions, target_names = ['Daisy (Class 0)','Rose (Class 1)']))
 
-base_model = tf.keras.applications.MobileNetV2(input_shape = (224, 224, 3), include_top = False, weights = "imagenet")
-
-base_model.trainable = False
-
-model = tf.keras.Sequential([base_model,
-                                 tf.keras.layers.GlobalAveragePooling2D(),
-                                 tf.keras.layers.Dropout(0.2),
-                                 tf.keras.layers.Dense(2, activation="softmax")
-                                ])
-
-base_learning_rate = 0.00001
-model.compile(optimizer=tf.keras.optimizers.Adam(lr=base_learning_rate),
-              loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
-              metrics=['accuracy'])
-
-history = model.fit(x_train,y_train,epochs = epochs , validation_data = (x_val, y_val))
-
-acc = history.history['accuracy']
-val_acc = history.history['val_accuracy']
-loss = history.history['loss']
-val_loss = history.history['val_loss']
-epochs_range = range(epochs)
-
-plt.figure(figsize=(15, 15))
-plt.subplot(2, 2, 1)
-plt.plot(epochs_range, acc, label='Training Accuracy')
-plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-plt.legend(loc='lower right')
-plt.title('Training and Validation Accuracy')
-
-plt.subplot(2, 2, 2)
-plt.plot(epochs_range, loss, label='Training Loss')
-plt.plot(epochs_range, val_loss, label='Validation Loss')
-plt.legend(loc='upper right')
-plt.title('Training and Validation Loss')
-plt.show()
-
-acc = history.history['accuracy']
-val_acc = history.history['val_accuracy']
-loss = history.history['loss']
-val_loss = history.history['val_loss']
-epochs_range = range(epochs)
-
-plt.figure(figsize=(15, 15))
-plt.subplot(2, 2, 1)
-plt.plot(epochs_range, acc, label='Training Accuracy')
-plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-plt.legend(loc='lower right')
-plt.title('Training and Validation Accuracy')
-
-plt.subplot(2, 2, 2)
-plt.plot(epochs_range, loss, label='Training Loss')
-plt.plot(epochs_range, val_loss, label='Validation Loss')
-plt.legend(loc='upper right')
-plt.title('Training and Validation Loss')
-plt.show()
 
 
 
