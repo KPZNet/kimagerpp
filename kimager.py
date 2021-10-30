@@ -5,29 +5,18 @@ import keras
 from keras.models import Sequential
 from keras.layers import Dense, Conv2D , MaxPool2D , Flatten , Dropout
 from keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.optimizers import Adam
+from keras.optimizers import adam_v2
 from sklearn.metrics import classification_report,confusion_matrix
-import tensorflow as tf
+
 import cv2
 import os
 import numpy as np
 
-import tensorflow as tf
-from tensorflow.python.client import device_lib
 
-epochs = 2
+epochs = 25
 labels = ['daisy', 'rose']
 img_size = 224
 
-def isgpu():
-    import tensorflow as tf
-    from tensorflow.python.client import device_lib
-    print(device_lib.list_local_devices())
-    print(tf.__version__)
-    print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
-
-    u = tf.config.list_physical_devices('GPU')
-    print("GPPU : ", u)
 
 def isgpu2():
     from tensorflow.python.client import device_lib
@@ -49,7 +38,7 @@ def get_data(data_dir):
                 print(e)
     return np.array(data)
 
-
+isgpu2()
 
 train = get_data('flowers/train')
 val = get_data('flowers/validate')
@@ -60,14 +49,16 @@ for i in train:
         l.append("daisy")
     else:
         l.append("rose")
-#sns.set_style('darkgrid')
-#sns.countplot(l)
-#plt.show()
+sns.set_style('darkgrid')
+sns.countplot(l)
+plt.show()
+
 
 plt.figure(figsize = (5,5))
 plt.imshow(val[1][0])
 plt.title(labels[train[0][1]])
 plt.show()
+
 
 l = []
 for i in val:
@@ -78,6 +69,8 @@ for i in val:
 sns.set_style('darkgrid')
 sns.countplot(l)
 plt.show()
+
+
 
 plt.figure(figsize = (5,5))
 plt.imshow(val[-1][0])
@@ -141,8 +134,10 @@ model.add(Dense(2, activation="softmax"))
 
 model.summary()
 
-opt = Adam(lr=0.000001)
-model.compile(optimizer = opt , loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True) , metrics = ['accuracy'])
+#opt = Adam(lr=0.000001)
+learning_rate = 0.000001
+opti = adam_v2.Adam(learning_rate=learning_rate, decay=learning_rate/epochs)
+model.compile(optimizer = opti , loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True) , metrics = ['accuracy'])
 
 history = model.fit(x_train,y_train,epochs = epochs , validation_data = (x_val, y_val))
 
