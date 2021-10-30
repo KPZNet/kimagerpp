@@ -13,17 +13,11 @@ import cv2
 import os
 import numpy as np
 
-try:
-  from google.colab import drive
-  drive.mount('/content/drive')
-  IN_COLAB = True
-except:
-  IN_COLAB = False
 
 def get_root_drive():
     root_patht = "flowers/train"
     root_pathv = "flowers/validate"
-    if IN_COLAB:
+    if 'COLAB_GPU' in os.environ:
         root_patht = '/content/drive/MyDrive/Colab Notebooks/flowers/train'
         root_pathv = '/content/drive/MyDrive/Colab Notebooks/flowers/validate'
     return root_patht, root_pathv
@@ -60,16 +54,21 @@ root_patht, root_pathv = get_root_drive()
 train = get_data(root_patht)
 val = get_data(root_pathv)
 
-l = []
-for i in train:
-    if(i[1] == 0):
-        l.append("daisy")
-    else:
-        l.append("rose")
-sns.set_style('darkgrid')
-sns.countplot(l)
-#plt.show()
 
+def count_images():
+    global l, i
+    l = []
+    for i in train:
+        if (i[1] == 0):
+            l.append("daisy")
+        else:
+            l.append("rose")
+    sns.set_style('darkgrid')
+    sns.countplot(l)
+    # plt.show()
+
+
+count_images()
 
 plt.figure(figsize = (5,5))
 plt.imshow(val[1][0])
