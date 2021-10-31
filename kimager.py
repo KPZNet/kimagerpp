@@ -8,23 +8,21 @@ from keras.layers import Dense, Conv2D , MaxPool2D , Flatten , Dropout
 from keras.preprocessing.image import ImageDataGenerator
 from keras.optimizers import adam_v2
 from sklearn.metrics import classification_report,confusion_matrix
-
 import cv2
 import os
 import numpy as np
+from sklearn.model_selection import train_test_split
 
 
 def get_root_drive():
-    root_patht = "flowers/train"
-    root_pathv = "flowers/validate"
+    root_path = "flowers"
     if 'COLAB_GPU' in os.environ:
-        root_patht = '/content/drive/MyDrive/Colab Notebooks/flowers/train'
-        root_pathv = '/content/drive/MyDrive/Colab Notebooks/flowers/validate'
-    return root_patht, root_pathv
+        root_path = '/content/drive/MyDrive/Colab Notebooks/flowers'
+    return root_path
 
 
-epochs = 10
-labels = ['daisy', 'rose']
+epochs = 50
+labels = ['daisy', 'rose', 'tulip']
 img_size = 224
 
 
@@ -50,49 +48,23 @@ def get_data(data_dir):
 
 isgpu2()
 
-root_patht, root_pathv = get_root_drive()
-train = get_data(root_patht)
-val = get_data(root_pathv)
+root_path = get_root_drive()
+
+data = get_data(root_path)
+
+def split_data(d, indx):
+    a = d[np.in1d(d[:, 1], indx)]
+    a = a[:500,:]
+    a_train, a_val = train_test_split(a,test_size=0.20, random_state=42)
+    return a_train, a_val
+
+a_train, a_val = split_data(data,0)
+b_trian, b_val = split_data(data,1)
+c_trian, c_val = split_data(data,2)
 
 
-def count_images():
-    global l, i
-    l = []
-    for i in train:
-        if (i[1] == 0):
-            l.append("daisy")
-        else:
-            l.append("rose")
-    sns.set_style('darkgrid')
-    sns.countplot(l)
-    # plt.show()
-
-
-count_images()
-
-plt.figure(figsize = (5,5))
-plt.imshow(val[1][0])
-plt.title(labels[train[0][1]])
-#plt.show()
-
-
-l = []
-for i in val:
-    if(i[1] == 0):
-        l.append("daisy")
-    else:
-        l.append("rose")
-sns.set_style('darkgrid')
-sns.countplot(l)
-#plt.show()
-
-
-
-plt.figure(figsize = (5,5))
-plt.imshow(val[-1][0])
-plt.title(labels[train[-1][1]])
-#plt.show()
-
+train = np.concatenate( (a_train, b_trian, c_trian) )
+val = np.concatenate( (a_val, b_val, c_val) )
 
 x_train = []
 y_train = []
@@ -146,15 +118,16 @@ model.add(Dropout(0.4))
 
 model.add(Flatten())
 model.add(Dense(128,activation="relu"))
-model.add(Dense(2, activation="softmax"))
+model.add(Dense(3, activation="softmax"))
 
 model.summary()
+
 
 learning_rate = 0.000001
 opti = adam_v2.Adam(learning_rate=learning_rate, decay=learning_rate/epochs)
 model.compile(optimizer = opti , loss = keras.losses.SparseCategoricalCrossentropy(from_logits=True) , metrics = ['accuracy'])
 
-history = model.fit(x_train,y_train,epochs = epochs , validation_data = (x_val, y_val))
+history = model.fit(x_train,y_train,epochs = epochs , validation_data = (x_val, y_val), verbose=1)
 
 acc = history.history['accuracy']
 val_acc = history.history['val_accuracy']
@@ -182,7 +155,7 @@ predict_x=model.predict(x_val)
 classes_x=np.argmax(predict_x,axis=1)
 
 predictions = classes_x.reshape(1,-1)[0]
-print(classification_report(y_val, predictions, target_names = ['INITIAL Daisy (Class 0)','Rose (Class 1)']))
+print(classification_report(y_val, predictions, target_names = ['INITIAL Daisy (Class 0)','Rose (Class 1)','Tulip (Class 2)' ]))
 
 
 def transfer_learner():
