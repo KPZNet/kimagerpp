@@ -11,6 +11,7 @@ from sklearn.metrics import classification_report,confusion_matrix
 import cv2
 import os
 import numpy as np
+from keras.utils import np_utils
 from sklearn.model_selection import train_test_split
 
 
@@ -21,8 +22,8 @@ def get_root_drive():
     return root_path
 
 
-epochs = 50
-labels = ['daisy', 'rose', 'tulip']
+epochs = 25
+labels = ['daisy', 'rose', 'tulip', 'sunflower']
 img_size = 224
 
 
@@ -61,10 +62,11 @@ def split_data(d, indx):
 a_train, a_val = split_data(data,0)
 b_trian, b_val = split_data(data,1)
 c_trian, c_val = split_data(data,2)
+d_trian, d_val = split_data(data,3)
 
 
-train = np.concatenate( (a_train, b_trian, c_trian) )
-val = np.concatenate( (a_val, b_val, c_val) )
+train = np.concatenate( (a_train, b_trian, c_trian, d_trian) )
+val = np.concatenate( (a_val, b_val, c_val, d_val) )
 
 x_train = []
 y_train = []
@@ -85,9 +87,11 @@ x_val = np.array(x_val) / 255
 
 x_train.reshape(-1, img_size, img_size, 1)
 y_train = np.array(y_train)
+y_trainc = np_utils.to_categorical(y_train, 4)
 
 x_val.reshape(-1, img_size, img_size, 1)
-y_val = np.array(y_val)
+y_valb = np.array(y_val)
+y_valc = np_utils.to_categorical(y_valb, 4)
 
 datagen = ImageDataGenerator(
         featurewise_center=False,  # set input mean to 0 over the dataset
@@ -106,6 +110,7 @@ datagen = ImageDataGenerator(
 datagen.fit(x_train)
 
 model = Sequential()
+
 model.add(Conv2D(32,3,padding="same", activation="relu", input_shape=(224,224,3)))
 model.add(MaxPool2D())
 
@@ -118,16 +123,18 @@ model.add(Dropout(0.4))
 
 model.add(Flatten())
 model.add(Dense(128,activation="relu"))
-model.add(Dense(3, activation="softmax"))
+model.add(Dense(4, activation="softmax"))
 
 model.summary()
 
 
 learning_rate = 0.000001
 opti = adam_v2.Adam(learning_rate=learning_rate, decay=learning_rate/epochs)
-model.compile(optimizer = opti , loss = keras.losses.SparseCategoricalCrossentropy(from_logits=True) , metrics = ['accuracy'])
+#model.compile(optimizer = opti , loss = keras.losses.SparseCategoricalCrossentropy(from_logits=True) , metrics = ['accuracy'])
+model.compile(optimizer='adam',loss='categorical_crossentropy',metrics=['accuracy'])
 
-history = model.fit(x_train,y_train,epochs = epochs , validation_data = (x_val, y_val), verbose=1)
+#history = model.fit(x_train,y_train,epochs = epochs, validation_data = (x_val, y_valb), verbose=2)
+history = model.fit(x_train,y_trainc,epochs = epochs, validation_data = (x_val, y_valc), verbose=2)
 
 acc = history.history['accuracy']
 val_acc = history.history['val_accuracy']
@@ -153,65 +160,17 @@ plt.title('Training and Validation Loss')
 
 predict_x=model.predict(x_val) 
 classes_x=np.argmax(predict_x,axis=1)
-
 predictions = classes_x.reshape(1,-1)[0]
-print(classification_report(y_val, predictions, target_names = ['INITIAL Daisy (Class 0)','Rose (Class 1)','Tulip (Class 2)' ]))
+print(classification_report(y_val, predictions, target_names = ['INITIAL Daisy (Class 0)','Rose (Class 1)','Tulip (Class 2)','Sunflower (Class 3)' ]))
+
+target_names = ['Daisy', 'Rose', 'Tulip', 'Sunflower']
+#print(classification_report(y_valb, classes_x, target_names=target_names))
 
 
-def transfer_learner():
-    global model, learning_rate, opti, history, predict_x, classes_x, predictions, acc, val_acc, loss, val_loss, epochs_range
-    base_model = keras.applications.mobilenet_v2.MobileNetV2(input_shape=(224, 224, 3), include_top=False,
-                                                             weights="imagenet")
-    base_model.trainable = False
-    model = keras.Sequential([base_model,
-                              keras.layers.GlobalAveragePooling2D(),
-                              keras.layers.Dropout(0.2),
-                              keras.layers.Dense(2, activation="softmax")
-                              ])
-    learning_rate = 0.000001
-    opti = adam_v2.Adam(learning_rate=learning_rate, decay=learning_rate / epochs)
-    model.compile(optimizer=opti,
-                  loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-                  metrics=['accuracy'])
-    history = model.fit(x_train, y_train, epochs=epochs, validation_data=(x_val, y_val))
-    predict_x = model.predict(x_val)
-    classes_x = np.argmax(predict_x, axis=1)
-    predictions = classes_x.reshape(1, -1)[0]
-    print(classification_report(y_val, predictions, target_names=['PRETRAINED Daisy (Class 0)', 'Rose (Class 1)']))
-    acc = history.history['accuracy']
-    val_acc = history.history['val_accuracy']
-    loss = history.history['loss']
-    val_loss = history.history['val_loss']
-    epochs_range = range(epochs)
-    plt.figure(figsize=(15, 15))
-    plt.subplot(2, 2, 1)
-    plt.plot(epochs_range, acc, label='Training Accuracy')
-    plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-    plt.legend(loc='lower right')
-    plt.title('Training and Validation Accuracy')
-    plt.subplot(2, 2, 2)
-    plt.plot(epochs_range, loss, label='Training Loss')
-    plt.plot(epochs_range, val_loss, label='Validation Loss')
-    plt.legend(loc='upper right')
-    plt.title('Training and Validation Loss')
-    plt.show()
-    acc = history.history['accuracy']
-    val_acc = history.history['val_accuracy']
-    loss = history.history['loss']
-    val_loss = history.history['val_loss']
-    epochs_range = range(epochs)
-    plt.figure(figsize=(15, 15))
-    plt.subplot(2, 2, 1)
-    plt.plot(epochs_range, acc, label='Training Accuracy')
-    plt.plot(epochs_range, val_acc, label='Validation Accuracy')
-    plt.legend(loc='lower right')
-    plt.title('Training and Validation Accuracy')
-    plt.subplot(2, 2, 2)
-    plt.plot(epochs_range, loss, label='Training Loss')
-    plt.plot(epochs_range, val_loss, label='Validation Loss')
-    plt.legend(loc='upper right')
-    plt.title('Training and Validation Loss')
-    plt.show()
+#Scores = model.evaluate(x_val, y_valb, verbose=2)
+#print('Validation loss:', Scores[0])
+#print('Validation accuracy:', Scores[1])
 
-
-#transfer_learner()
+#Scores = model.evaluate(x_train, y_train, verbose=2)
+#print('Training loss:', Scores[0])
+#print('Training accuracy:', Scores[1])

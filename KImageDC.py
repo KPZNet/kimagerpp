@@ -100,8 +100,6 @@ CNNModel.add(Dense(128,
 CNNModel.add(Dense(10, activation='softmax'))
 CNNModel.summary()
 
-
-
 CNNModel.compile(optimizer='adam',loss='categorical_crossentropy',metrics=['accuracy'])
 CNNModel.fit(XTrain, YTrain, epochs=10,batch_size=32, verbose=1)
 
