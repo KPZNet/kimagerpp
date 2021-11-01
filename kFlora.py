@@ -81,7 +81,7 @@ def print_quick_stats(model):
     print('Validation loss:', Scores[0])
     print('Validation accuracy:', Scores[1])
 
-def run_model_1(epochs, outputs, img_size, train_generator, val_generator):
+def run_model_1(epochs, outputs, img_size, train_generator, val_generator, verb = 1):
     model = Sequential()
     model.add(Conv2D(32,3,padding="same", activation="relu", input_shape=(img_size,img_size,3)))
     model.add(MaxPool2D())
@@ -96,11 +96,11 @@ def run_model_1(epochs, outputs, img_size, train_generator, val_generator):
     model.summary()
 
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    history = model.fit(train_generator, epochs=epochs, validation_data=val_generator, verbose=2)
+    history = model.fit(train_generator, epochs=epochs, validation_data=val_generator, verbose=verb)
 
     return model, history
 
-def run_model_pretrained_xception(epochs, outputs, img_size, train_generator, val_generator):
+def run_model_pretrained_xception(epochs, outputs, img_size, train_generator, val_generator, verb = 1):
     base_model = keras.applications.xception.Xception(weights='imagenet', include_top=False, input_shape=(img_size, img_size, 3))
     base_model.trainable = False
     model = keras.Sequential([base_model,
@@ -110,11 +110,11 @@ def run_model_pretrained_xception(epochs, outputs, img_size, train_generator, va
                               ])
 
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    history = model.fit(train_generator, epochs=epochs, validation_data=val_generator, verbose=2)
+    history = model.fit(train_generator, epochs=epochs, validation_data=val_generator, verbose=verb)
 
     return model, history
 
-def run_model_pretrained_mobilenetv2(epochs, outputs, img_size,train_generator, val_generator):
+def run_model_pretrained_mobilenetv2(epochs, outputs, img_size,train_generator, val_generator, verb = 1):
     base_model = keras.applications.mobilenet_v2.MobileNetV2(input_shape=(img_size, img_size, 3), include_top=False,
                                                              weights="imagenet")
     base_model.trainable = False
@@ -125,7 +125,7 @@ def run_model_pretrained_mobilenetv2(epochs, outputs, img_size,train_generator, 
                               ])
 
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    history = model.fit(train_generator, epochs=epochs, validation_data=val_generator, verbose=2)
+    history = model.fit(train_generator, epochs=epochs, validation_data=val_generator, verbose = verb)
 
     return model, history
 
