@@ -17,7 +17,7 @@ from keras import layers
 from keras.models import load_model
 from keras.applications import *
 
-epochs = 25
+epochs = 5
 img_size = 224
 
 def get_root_drive():
@@ -63,8 +63,8 @@ def save_model(mdl, filename):
     mdl.save(filename)
     print("Saved model to disk")
 
-def load_saved_model():
-    model = load_model('model.h5')
+def load_saved_model(name):
+    model = load_model(name)
     return model
 
 
@@ -80,7 +80,7 @@ def get_pretrained_mobilenet(outputs, image_size):
     return model
 
 
-def get_model_a():
+def get_model_1():
     model = Sequential()
     model.add(Conv2D(32,3,padding="same", activation="relu", input_shape=(img_size,img_size,3)))
     model.add(MaxPool2D())
@@ -96,41 +96,31 @@ def get_model_a():
     return model
 
 
-def exec_loaded_model():
-    model = load_saved_model()
+def run_loaded_model(model):
     Scores = model.evaluate(val_generator, verbose=2)
     print('Validation loss:', Scores[0])
     print('Validation accuracy:', Scores[1])
 
-def run_model_1():
-    model = get_model_a()
-
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    history = model.fit(train_generator, epochs=epochs, validation_data=val_generator, verbose=2)
-
-    print_quick_stats(model)
-
-    return model
 
 def plot_history(history):
     acc = history.history['accuracy']
     val_acc = history.history['val_accuracy']
     loss = history.history['loss']
     val_loss = history.history['val_loss']
-    epochs_range = range ( 500 )
+    epochs_range = range ( epochs )
 
-    plt.figure ( figsize=(15, 15) )
-    plt.subplot ( 2, 2, 1 )
-    plt.plot ( epochs_range, acc, label='Training Accuracy' )
-    plt.plot ( epochs_range, val_acc, label='Validation Accuracy' )
-    plt.legend ( loc='lower right' )
-    plt.title ( 'Training and Validation Accuracy' )
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    fig.suptitle('Training History')
 
-    plt.subplot ( 2, 2, 2 )
-    plt.plot ( epochs_range, loss, label='Training Loss' )
-    plt.plot ( epochs_range, val_loss, label='Validation Loss' )
-    plt.legend ( loc='upper right' )
-    plt.title ( 'Training and Validation Loss' )
+    ax1.plot ( epochs_range, acc, label='Training Accuracy' )
+    ax1.plot ( epochs_range, val_acc, label='Validation Accuracy' )
+    ax1.legend ( loc='lower right' )
+    ax1.set_title ( 'Training and Validation Accuracy' )
+
+    ax2.plot ( epochs_range, loss, label='Training Loss' )
+    ax2.plot ( epochs_range, val_loss, label='Validation Loss' )
+    ax2.legend ( loc='upper right' )
+    ax2.set_title ( 'Training and Validation Loss' )
     plt.show ()
 
 
@@ -138,6 +128,16 @@ def print_quick_stats(model):
     Scores = model.evaluate(val_generator, verbose=2)
     print('Validation loss:', Scores[0])
     print('Validation accuracy:', Scores[1])
+
+def run_model_1():
+    model = get_model_1()
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    history = model.fit(train_generator, epochs=epochs, validation_data=val_generator, verbose=2)
+
+    print_quick_stats(model)
+    plot_history(history)
+
+    return model
 
 def run_model_pretrained_xception(img_size, outputs):
     base_model = keras.applications.xception.Xception(weights='imagenet', include_top=False, input_shape=(img_size, img_size, 3))
@@ -173,12 +173,13 @@ def run_model_pretrained_mobilenetv2(img_size, outputs):
     return model
 
 #m = run_model_pretrained_mobilenetv2(img_size, 5)
-m = run_model_pretrained_xception(img_size, 5)
-save_model(m, "xceptionnet.h5")
-#m = run_model_1()
+#m = run_model_pretrained_xception(img_size, 5)
+#save_model(m, "xceptionnet.h5")
+m = run_model_1()
 #save_model(m)
 
-#exec_loaded_model()
+#m = load_saved_model("xceptionnet.h5")
+#run_loaded_model()
 
 
 
