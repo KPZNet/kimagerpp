@@ -108,11 +108,18 @@ def run_model_1():
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     history = model.fit(train_generator, epochs=epochs, validation_data=val_generator, verbose=2)
 
+    print_quick_stats(model)
+
+    return model
+
+def plot_history(history):
+    
+
+
+def print_quick_stats(model):
     Scores = model.evaluate(val_generator, verbose=2)
     print('Validation loss:', Scores[0])
     print('Validation accuracy:', Scores[1])
-
-    return model
 
 def run_model_pretrained_xception(img_size, outputs):
     base_model = keras.applications.xception.Xception(weights='imagenet', include_top=False, input_shape=(img_size, img_size, 3))
@@ -126,9 +133,7 @@ def run_model_pretrained_xception(img_size, outputs):
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     history = model.fit(train_generator, epochs=epochs, validation_data=val_generator, verbose=2)
 
-    Scores = model.evaluate(val_generator, verbose=2)
-    print('Validation loss:', Scores[0])
-    print('Validation accuracy:', Scores[1])
+    print_quick_stats(model)
 
     return model
 
@@ -145,9 +150,7 @@ def run_model_pretrained_mobilenetv2(img_size, outputs):
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     history = model.fit(train_generator, epochs=epochs, validation_data=val_generator, verbose=2)
 
-    Scores = model.evaluate(val_generator, verbose=2)
-    print('Validation loss:', Scores[0])
-    print('Validation accuracy:', Scores[1])
+    print_quick_stats(model)
 
     return model
 
