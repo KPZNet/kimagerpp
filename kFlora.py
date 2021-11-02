@@ -15,6 +15,12 @@ def get_root_drive():
         root_path = '/content/drive/MyDrive/Colab Notebooks/flowers'
     return root_path
 
+def get_root_drive_predict():
+    root_path = "test_flowers"
+    if 'COLAB_GPU' in os.environ:
+        root_path = '/content/drive/MyDrive/Colab Notebooks/test_flowers'
+    return root_path
+
 def isgpu2():
     from tensorflow.python.client import device_lib
     print(device_lib.list_local_devices())
@@ -42,6 +48,18 @@ def get_data_generators(train_path, img_size):
         class_mode='categorical')
     return train_generator, val_generator
 
+def get_predict_images(predict_path, img_size):
+
+    datagenPredict = ImageDataGenerator()
+    predict_generator = datagenPredict.flow_from_directory(
+        train_path,
+        shuffle=True,
+        subset='training',
+        target_size=(img_size, img_size),
+        class_mode='categorical')
+    return predict_generator
+
+
 def save_model(mdl, filename):
     mdl.save(filename)
     print("Saved model to disk")
@@ -54,6 +72,11 @@ def run_loaded_model(model):
     Scores = model.evaluate(val_generator, verbose=2)
     print('Validation loss:', Scores[0])
     print('Validation accuracy:', Scores[1])
+
+def model_predict(model, data):
+    predictions = model.predict(val_generator, verbose=2)
+
+
 
 def plot_history(history):
     acc = history.history['accuracy']
@@ -129,21 +152,24 @@ def run_model_pretrained_mobilenetv2(epochs, outputs, img_size,train_generator, 
 
     return model, history
 
-epochs = 1
+epochs = 2
 outputs = 5
 img_size = 224
 train_path = get_root_drive()
+pred_path = get_root_drive_predict()
 train_gen, val_gen = get_data_generators(img_size=img_size, train_path=train_path)
 
-m,h = run_model_pretrained_mobilenetv2(epochs, outputs, img_size, train_gen, val_gen)
-m,h = run_model_pretrained_xception(epochs,outputs, img_size, train_gen, val_gen)
-m,h = run_model_1(epochs,outputs, img_size, train_gen, val_gen)
+#m,h = run_model_pretrained_mobilenetv2(epochs, outputs, img_size, train_gen, val_gen)
+#m,h = run_model_pretrained_xception(epochs,outputs, img_size, train_gen, val_gen)
+#m,h = run_model_1(epochs,outputs, img_size, train_gen, val_gen)
 
 # "mobilenetv2.h5"
 # "model.h5"
 # "xceptionnet.h5"
 
-#m = load_saved_model("xceptionnet.h5")
+m = load_saved_model("xceptionnet.h5")
+pimages = get_predict_images(pred_path, img_size)
+model_predict(m, pimages)
 #run_loaded_model(m)
 
 
