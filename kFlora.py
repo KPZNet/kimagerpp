@@ -25,8 +25,7 @@ def isgpu2():
     from tensorflow.python.client import device_lib
     print(device_lib.list_local_devices())
 
-def get_data_generators(train_path, img_size):
-    global train_generator, val_generator
+def get_data_generators(images_path, img_size):
     datagenTraining = ImageDataGenerator(
         validation_split=0.2,
         rescale=1. / 255
@@ -35,13 +34,13 @@ def get_data_generators(train_path, img_size):
         validation_split=0.2,
         rescale=1.0 / 255)
     train_generator = datagenTraining.flow_from_directory(
-        train_path,
+        images_path,
         shuffle=True,
         subset='training',
         target_size=(img_size, img_size),
         class_mode='categorical')
     val_generator = datagenValidation.flow_from_directory(
-        train_path,
+        images_path,
         shuffle=True,
         subset='validation',
         target_size=(img_size, img_size),
@@ -50,10 +49,10 @@ def get_data_generators(train_path, img_size):
 
 def get_predict_images(predict_path, img_size):
 
-    datagenPredict = ImageDataGenerator()
-    predict_generator = datagenPredict.flow_from_directory(
-        train_path,
-        shuffle=True,
+    imPredict = ImageDataGenerator(rescale=1.0 / 255)
+    predict_generator = imPredict.flow_from_directory(
+        predict_path,
+        shuffle=False,
         subset='training',
         target_size=(img_size, img_size),
         class_mode='categorical')
@@ -74,7 +73,9 @@ def run_loaded_model(model):
     print('Validation accuracy:', Scores[1])
 
 def model_predict(model, data):
-    predictions = model.predict(val_generator, verbose=2)
+    Scores = model.evaluate(data, verbose=2)
+    print('Validation loss:', Scores[0])
+    print('Validation accuracy:', Scores[1])
 
 
 
@@ -157,7 +158,7 @@ outputs = 5
 img_size = 224
 train_path = get_root_drive()
 pred_path = get_root_drive_predict()
-train_gen, val_gen = get_data_generators(img_size=img_size, train_path=train_path)
+train_gen, val_gen = get_data_generators(img_size=img_size, images_path=train_path)
 
 #m,h = run_model_pretrained_mobilenetv2(epochs, outputs, img_size, train_gen, val_gen)
 #m,h = run_model_pretrained_xception(epochs,outputs, img_size, train_gen, val_gen)
