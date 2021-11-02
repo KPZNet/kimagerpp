@@ -8,6 +8,7 @@ from keras.layers import Dense, Conv2D, MaxPool2D, Flatten, Dropout
 from keras.models import Sequential
 from keras.models import load_model
 from keras.preprocessing.image import ImageDataGenerator
+import numpy as np
 
 def get_root_drive():
     root_path = "flowers"
@@ -74,8 +75,15 @@ def run_loaded_model(model):
 
 def model_predict(model, data):
     Scores = model.evaluate(data, verbose=2)
-    print('Validation loss:', Scores[0])
-    print('Validation accuracy:', Scores[1])
+    print('Prediction loss:', Scores[0])
+    print('Prediction accuracy:', Scores[1])
+
+    dct = {v: k for k, v in data.class_indices.items()}
+    # Generate predictions for samples
+    predictions = model.predict(data)
+    preds = np.argmax(predictions, axis=1)
+    for i,k in enumerate(preds):
+        print( dct[k] ,":", dct[data.classes[i]])
 
 
 
