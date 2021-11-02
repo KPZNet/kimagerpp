@@ -1,4 +1,6 @@
 import os
+from os import listdir
+from PIL import Image
 
 import keras
 import matplotlib.pyplot as plt
@@ -15,6 +17,32 @@ def get_root_drive():
     if 'COLAB_GPU' in os.environ:
         root_path = '/content/drive/MyDrive/Colab Notebooks/flowers'
     return root_path
+
+
+def clean_files(folderToCheck, verbose = 0):
+    print("-------------- FILE Checks --------------");
+    def check_file(filename):
+        try:
+            if verbose >= 2:
+                print("Checking: ", filename)
+            img = Image.open(filename) 
+            tst = img.verify() 
+        except (IOError, SyntaxError) as e:
+            if verbose >= 1:
+                print('\tBad file removed:', filename) 
+            os.remove(filename)
+
+    for directory, subdirectories, files, in os.walk(folderToCheck):
+      if verbose >= 1:
+          print("Checking {0} with {1} files".format(directory, len(files) ))
+      for file in files:
+          filePath = os.path.join(directory, file)
+          check_file(filePath)
+
+    print("-------------- DONE FILE Checks --------------");
+
+
+  
 
 def get_root_drive_predict():
     root_path = "test_flowers"
@@ -108,10 +136,13 @@ def plot_history(history):
     ax2.set_title ( 'Training and Validation Loss' )
     plt.show ()
 
-def print_quick_stats(model):
-    Scores = model.evaluate(val_generator, verbose=2)
-    print('Validation loss:', Scores[0])
-    print('Validation accuracy:', Scores[1])
+def print_quick_stats(model, v_data, verb = 1):
+    Scores = model.evaluate(v_data, verbose=verb)
+    print("")
+    print("Model Quick Stats")
+    print('Model Test Loss:', Scores[0])
+    print('Model Test Accuracy:', Scores[1])
+    print("")
 
 def run_model_1(epochs, outputs, img_size, train_generator, val_generator, verb = 1):
     model = Sequential()
@@ -161,22 +192,32 @@ def run_model_pretrained_mobilenetv2(epochs, outputs, img_size,train_generator, 
 
     return model, history
 
-epochs = 2
+epochs = 100
 outputs = 5
-img_size = 224
+img_size = 100
 train_path = get_root_drive()
 pred_path = get_root_drive_predict()
 train_gen, val_gen = get_data_generators(img_size=img_size, images_path=train_path)
 
-#m,h = run_model_pretrained_mobilenetv2(epochs, outputs, img_size, train_gen, val_gen)
-#m,h = run_model_pretrained_xception(epochs,outputs, img_size, train_gen, val_gen)
+clean_files(train_path, 1)
+
+#m,h = run_model_pretrained_mobilenetv2(epochs, outputs, img_size, train_gen, val_gen, 2)
+#save_model(m, "mobilenet.h5")
+#print_quick_stats(m, val_gen)
+#plot_history(h)
+
+m,h = run_model_pretrained_xception(epochs,outputs, img_size, train_gen, val_gen)
+save_model(m, "xceptionnet.h5")
+print_quick_stats(m, val_gen)
+plot_history(h)
+
 #m,h = run_model_1(epochs,outputs, img_size, train_gen, val_gen)
 
 # "mobilenetv2.h5"
 # "model.h5"
 # "xceptionnet.h5"
 
-m = load_saved_model("xceptionnet.h5")
+#m = load_saved_model("model.h5")
 pimages = get_predict_images(pred_path, img_size)
 model_predict(m, pimages)
 #run_loaded_model(m)
