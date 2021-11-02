@@ -11,6 +11,7 @@ from keras.models import Sequential
 from keras.models import load_model
 from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
+import pandas as pd
 
 def get_root_drive():
     root_path = "flowers"
@@ -96,23 +97,32 @@ def load_saved_model(name):
     model = load_model(name)
     return model
 
-def run_loaded_model(model):
-    Scores = model.evaluate(val_generator, verbose=2)
-    print('Validation loss:', Scores[0])
-    print('Validation accuracy:', Scores[1])
-
-def model_predict(model, data):
+def model_predict(model, data, model_name="Model"):
     Scores = model.evaluate(data, verbose=2)
-    print('Prediction loss:', Scores[0])
-    print('Prediction accuracy:', Scores[1])
+    print("")
+    print("Model: ", model_name)
+    print("Summary")
+    #print('Prediction loss:', Scores[0])
+    print('Identification accuracy:', Scores[1])
+    print("")
 
     dct = {v: k for k, v in data.class_indices.items()}
     # Generate predictions for samples
     predictions = model.predict(data)
     preds = np.argmax(predictions, axis=1)
-    for i,k in enumerate(preds):
-        print( dct[k] ,":", dct[data.classes[i]])
+    df = pd.DataFrame()
 
+    for i,k in enumerate(preds):
+        r = [ (dct[k] == dct[data.classes[i]] , dct[data.classes[i]] , dct[k] , data.filenames[i] ) ]
+        df = df.append( pd.DataFrame(r, columns=['Found','Expected','Identified','File']) )
+
+    pd.set_option('display.max_rows', None)
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', 1200)
+    pd.set_option('display.colheader_justify', 'right')
+    pd.set_option('display.precision', 3)
+    print(df)
+    print("")
 
 
 def plot_history(history):
@@ -192,6 +202,11 @@ def run_model_pretrained_mobilenetv2(epochs, outputs, img_size,train_generator, 
 
     return model, history
 
+
+# "mobilenet.h5"
+# "Kmodel.h5"
+# "xceptionnet.h5"
+
 epochs = 100
 outputs = 5
 img_size = 100
@@ -200,27 +215,35 @@ pred_path = get_root_drive_predict()
 train_gen, val_gen = get_data_generators(img_size=img_size, images_path=train_path)
 
 clean_files(train_path, 1)
+clean_files(pred_path, 1)
 
 #m,h = run_model_pretrained_mobilenetv2(epochs, outputs, img_size, train_gen, val_gen, 2)
 #save_model(m, "mobilenet.h5")
 #print_quick_stats(m, val_gen)
 #plot_history(h)
 
-m,h = run_model_pretrained_xception(epochs,outputs, img_size, train_gen, val_gen)
-save_model(m, "xceptionnet.h5")
+#m,h = run_model_pretrained_xception(epochs,outputs, img_size, train_gen, val_gen, 2)
+#save_model(m, "xceptionnet.h5")
+#print_quick_stats(m, val_gen)
+#plot_history(h)
+
+m,h = run_model_1(epochs,outputs, img_size, train_gen, val_gen, 2)
+save_model(m, "Kmodel.h5")
 print_quick_stats(m, val_gen)
 plot_history(h)
 
-#m,h = run_model_1(epochs,outputs, img_size, train_gen, val_gen)
-
-# "mobilenetv2.h5"
-# "model.h5"
-# "xceptionnet.h5"
-
-#m = load_saved_model("model.h5")
+m = load_saved_model("xceptionnet.h5")
 pimages = get_predict_images(pred_path, img_size)
-model_predict(m, pimages)
-#run_loaded_model(m)
+model_predict(m, pimages, "XCeptionNet")
+
+m = load_saved_model("mobilenet.h5")
+pimages = get_predict_images(pred_path, img_size)
+model_predict(m, pimages, "mobilenet")
+
+m = load_saved_model("Kmodel.h5")
+pimages = get_predict_images(pred_path, img_size)
+model_predict(m, pimages, "Kmodel")
+
 
 
 
