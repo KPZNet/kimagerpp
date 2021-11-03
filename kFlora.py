@@ -206,6 +206,7 @@ def print_quick_stats(model, v_data, verb = 1):
 
 def run_model_1(epochs, outputs, img_size, train_generator, val_generator, verb = 1):
     model = Sequential()
+
     model.add(Conv2D(32,3,padding="same", activation="relu", input_shape=(img_size,img_size,3)))
     model.add(MaxPool2D())
     model.add(Conv2D(32, 3, padding="same", activation="relu"))
@@ -257,11 +258,12 @@ def run_model_pretrained_mobilenetv2(epochs, outputs, img_size,train_generator, 
 # "Kmodel.h5"
 # "xceptionnet.h5"
 
-epochs = 100
+epochs = 25
 outputs = 5
-img_size = 224
+img_size = 100
 train_path = get_root_drive()
 pred_path = get_root_drive_predict()
+#train_gen, val_gen = get_data_generators(img_size=img_size, images_path=train_path)
 train_gen, val_gen = get_data_generators_randomized(img_size=img_size, images_path=train_path)
 
 clean_files(train_path, 1)
@@ -272,33 +274,24 @@ clean_files(pred_path, 1)
 #print_quick_stats(m, val_gen)
 #plot_history(h)
 
-#m,h = run_model_pretrained_xception(epochs,outputs, img_size, train_gen, val_gen, 2)
+m,h = run_model_1(epochs,outputs, img_size, train_gen, val_gen, 1)
+print_quick_stats(m, val_gen)
+plot_history(h)
+pimages = get_predict_images(pred_path, img_size)
+model_predict(m, pimages)
+
+#m,h = run_model_pretrained_xception(epochs,outputs, img_size, train_gen, val_gen, 1)
 #save_model(m, "xceptionnet224-Randomized.h5")
 #print_quick_stats(m, val_gen)
 #plot_history(h)
-
-#m,h = run_model_1(epochs,outputs, img_size, train_gen, val_gen, 2)
-#save_model(m, "Kmodel.h5")
-#print_quick_stats(m, val_gen)
-#plot_history(h)
-
 
 #m = load_saved_model("xceptionnet224.h5")
 #pimages = get_predict_images(pred_path, img_size)
 #model_predict(m, pimages, "XCeptionNet-224")
 
-#m = load_saved_model("xceptionnet.h5")
-#pimages = get_predict_images(pred_path, img_size)
-#model_predict(m, pimages, "XCeptionNet")
 
-#m = load_saved_model("mobilenet.h5")
-#pimages = get_predict_images(pred_path, img_size)
-#model_predict(m, pimages, "mobilenet")
 
-m = load_saved_model("xceptionnet224-Randomized.h5")
-#plot_model(m, to_file='xceptionnet.png')
-pimages = get_predict_images(pred_path, img_size)
-model_predict(m, pimages, "xceptionnet224-Randomized.h5")
+
 
 
 
