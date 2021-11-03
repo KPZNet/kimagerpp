@@ -5,6 +5,7 @@ from PIL import Image
 import keras
 import matplotlib.pyplot as plt
 from keras import layers
+from keras.utils.vis_utils import plot_model
 from keras.applications import mobilenet_v2
 from keras.layers import Dense, Conv2D, MaxPool2D, Flatten, Dropout
 from keras.models import Sequential
@@ -76,6 +77,55 @@ def get_data_generators(images_path, img_size):
         target_size=(img_size, img_size),
         class_mode='categorical')
     return train_generator, val_generator
+
+def get_data_generators_randomized(images_path, img_size):
+
+    datagenTraining = ImageDataGenerator(
+        validation_split=0.2,
+        rescale=1. / 255,
+        
+        featurewise_center=False,  # set input mean to 0 over the dataset
+        samplewise_center=False,  # set each sample mean to 0
+        featurewise_std_normalization=False,  # divide inputs by std of the dataset
+        samplewise_std_normalization=False,  # divide each input by its std
+        zca_whitening=False,  # apply ZCA whitening
+        rotation_range = 30,  # randomly rotate images in the range (degrees, 0 to 180)
+        zoom_range = 0.2, # Randomly zoom image
+        width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
+        height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
+        horizontal_flip = True,  # randomly flip images
+        vertical_flip=False
+    )
+    datagenValidation = ImageDataGenerator(
+        validation_split=0.2,
+        rescale=1.0 / 255,
+        
+        featurewise_center=False,  # set input mean to 0 over the dataset
+        samplewise_center=False,  # set each sample mean to 0
+        featurewise_std_normalization=False,  # divide inputs by std of the dataset
+        samplewise_std_normalization=False,  # divide each input by its std
+        zca_whitening=False,  # apply ZCA whitening
+        rotation_range = 30,  # randomly rotate images in the range (degrees, 0 to 180)
+        zoom_range = 0.2, # Randomly zoom image
+        width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
+        height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
+        horizontal_flip = True,  # randomly flip images
+        vertical_flip=False
+        )
+    train_generator = datagenTraining.flow_from_directory(
+        images_path,
+        shuffle=True,
+        subset='training',
+        target_size=(img_size, img_size),
+        class_mode='categorical')
+    val_generator = datagenValidation.flow_from_directory(
+        images_path,
+        shuffle=True,
+        subset='validation',
+        target_size=(img_size, img_size),
+        class_mode='categorical')
+    return train_generator, val_generator
+
 
 def get_predict_images(predict_path, img_size):
 
@@ -209,40 +259,46 @@ def run_model_pretrained_mobilenetv2(epochs, outputs, img_size,train_generator, 
 
 epochs = 100
 outputs = 5
-img_size = 100
+img_size = 224
 train_path = get_root_drive()
 pred_path = get_root_drive_predict()
-train_gen, val_gen = get_data_generators(img_size=img_size, images_path=train_path)
+train_gen, val_gen = get_data_generators_randomized(img_size=img_size, images_path=train_path)
 
 clean_files(train_path, 1)
 clean_files(pred_path, 1)
 
 #m,h = run_model_pretrained_mobilenetv2(epochs, outputs, img_size, train_gen, val_gen, 2)
-#save_model(m, "mobilenet.h5")
+#save_model(m, "mobilenet224.h5")
 #print_quick_stats(m, val_gen)
 #plot_history(h)
 
 #m,h = run_model_pretrained_xception(epochs,outputs, img_size, train_gen, val_gen, 2)
-#save_model(m, "xceptionnet.h5")
+#save_model(m, "xceptionnet224-Randomized.h5")
 #print_quick_stats(m, val_gen)
 #plot_history(h)
 
-m,h = run_model_1(epochs,outputs, img_size, train_gen, val_gen, 2)
-save_model(m, "Kmodel.h5")
-print_quick_stats(m, val_gen)
-plot_history(h)
+#m,h = run_model_1(epochs,outputs, img_size, train_gen, val_gen, 2)
+#save_model(m, "Kmodel.h5")
+#print_quick_stats(m, val_gen)
+#plot_history(h)
 
-m = load_saved_model("xceptionnet.h5")
-pimages = get_predict_images(pred_path, img_size)
-model_predict(m, pimages, "XCeptionNet")
 
-m = load_saved_model("mobilenet.h5")
-pimages = get_predict_images(pred_path, img_size)
-model_predict(m, pimages, "mobilenet")
+#m = load_saved_model("xceptionnet224.h5")
+#pimages = get_predict_images(pred_path, img_size)
+#model_predict(m, pimages, "XCeptionNet-224")
 
-m = load_saved_model("Kmodel.h5")
+#m = load_saved_model("xceptionnet.h5")
+#pimages = get_predict_images(pred_path, img_size)
+#model_predict(m, pimages, "XCeptionNet")
+
+#m = load_saved_model("mobilenet.h5")
+#pimages = get_predict_images(pred_path, img_size)
+#model_predict(m, pimages, "mobilenet")
+
+m = load_saved_model("xceptionnet224-Randomized.h5")
+#plot_model(m, to_file='xceptionnet.png')
 pimages = get_predict_images(pred_path, img_size)
-model_predict(m, pimages, "Kmodel")
+model_predict(m, pimages, "xceptionnet224-Randomized.h5")
 
 
 
