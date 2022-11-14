@@ -2,10 +2,7 @@ import os
 import warnings
 from os import listdir
 
-from PIL import Image
-
 warnings.simplefilter(action='ignore', category=FutureWarning)
-
 
 import keras
 import matplotlib.pyplot as plt
@@ -17,10 +14,12 @@ from keras.layers import Conv2D, Dense, Dropout, Flatten, MaxPool2D
 from keras.models import Sequential, load_model
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils.vis_utils import plot_model
+from PIL import Image
+from tensorflow.python.client import device_lib
 
 
 def get_root_drive():
-    root_path = "flowers"
+    root_path = "pcbimages"
     if "COLAB_GPU" in os.environ:
         root_path = "/content/drive/MyDrive/Colab Notebooks/flowers"
     return root_path
@@ -55,7 +54,7 @@ def clean_files(folderToCheck, verbose=0):
 
 
 def get_root_drive_predict():
-    root_path = "test_flowers"
+    root_path = "test_pcbimages"
     if "COLAB_GPU" in os.environ:
         root_path = "/content/drive/MyDrive/Colab Notebooks/test_flowers"
     return root_path
@@ -63,7 +62,6 @@ def get_root_drive_predict():
 
 def isgpu2():
     from tensorflow.python.client import device_lib
-
     print(device_lib.list_local_devices())
 
 
@@ -321,9 +319,9 @@ def run_model_pretrained_mobilenetv2(
 # "mobilenet.h5"
 # "Kmodel.h5"
 # "xceptionnet.h5"
-batch = 64
+batch = 32
 epochs = 25
-outputs = 5
+outputs = 13
 img_size = 100
 train_path = get_root_drive()
 pred_path = get_root_drive_predict()
